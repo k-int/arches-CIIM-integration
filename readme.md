@@ -68,3 +68,6 @@ python manage.py migrate
 ```
 python manage.py populate_latest_resource_edit_table
 ```
+
+
+For more documentation, see the shared Google Drive folder: https://drive.google.com/drive/u/0/folders/1LV-7YT5DHExh5NaodRncn5ODjR2Wun-h
