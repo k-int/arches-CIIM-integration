@@ -2,9 +2,11 @@
 
 ## Steps
 1. Copy the file "ciimchanges.py" into the Arches project views directory (it is entirely possible there isn't a views folder in the project so in that case simply make one).       
-This contains the core code for exporting all ConceptSchemes to XML and displaying resource changes from a given date.
+This contains the core code for the following two APIs:
+- Exporting all ConceptSchemes to XML.
+- Displaying resource changes from a given date.
 
-2. Navigate to the project "urls.py" and add the following code, first a new import to the top of the file:
+2. Navigate to the project "urls.py" to add the following code, but first a new import to the top of the file:
 ```
 from .views.ciimchanges import ChangesView, ConceptsExportView
 ```
@@ -46,7 +48,7 @@ Then, underneath edit.save() in the function save_edit add the following:
 ```
 from arches.app.models.resource import EditLog, LatestResourceEdit
 ```
-Then once again, underneat edit.save() in the function save_edit add the following:
+Then once again, underneath edit.save() in the function save_edit add the following:
 ```
         if LatestResourceEdit.objects.filter(resourceinstanceid=self.resourceinstance.resourceinstanceid).exists():
             LatestResourceEdit.objects.get(resourceinstanceid=self.resourceinstance.resourceinstanceid).delete()
@@ -60,4 +62,9 @@ Then once again, underneat edit.save() in the function save_edit add the followi
 ```
 python manage.py makemigrations
 python manage.py migrate
+```
+
+7. To initiate the use of the latest_resource_edits table, a management command must be run. This command can be found in this repo under the name `populate_latest_resource_edit_table.py`. Run the command, with the virtual environment activated, using 
+```
+python manage.py populate_latest_resource_edit_table
 ```
