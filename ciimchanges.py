@@ -11,6 +11,7 @@ from arches.app.utils.betterJSONSerializer import JSONSerializer
 
 from arches.app.models.resource import Resource
 from arches.app.models.models import LatestResourceEdit
+from arches.app.models.models import EditLog
 
 from arches.app.models.models import Concept as modelConcept
 from arches.app.models.concept import Concept
@@ -77,16 +78,37 @@ class ChangesView(View):
                     resource = Resource.objects.get(pk=resourceid)
                     resource.load_tiles()
 
+                    # Get created time from resource
+                    if "createdtime" in vars(resource):
+                        created_time = (vars(resource)["createdtime"])
+
                     if not(len(resource.tiles) == 1 and not resource.tiles[0].data):
                         resource_json= {'modified':edit.timestamp.strftime('%d-%m-%YT%H:%M:%SZ')}
+                        resource_json.update({'created':created_time.strftime('%d-%m-%YT%H:%M:%SZ')})
                         resource_json.update(JSONSerializer().serializeToPython(resource))
                         if resource_json['displaydescription'] == '<Description>': resource_json['displaydescription'] = None
                         if resource_json['map_popup'] == '<Name_Type>': resource_json['map_popup'] = None
                         if resource_json['displayname'] == '<NMRW_Name>' : resource_json['displayname'] = None
                         data.append(resource_json)
                 else:
-                    data.append({'modified':edit.timestamp,'resourceinstance_id':resourceid, 'tiles':None})
+                    #data.append({'modified':edit.timestamp,'resourceinstance_id':resourceid, 'tiles':None})
+                    deletedresource = EditLog.objects.filter(resourceinstanceid=resourceid, edittype='create').order_by('timestamp')
+                    lastlog = deletedresource.last()
 
+                    # this is here because of the rare instance that the edit log doesn't have the create edit history
+                    if lastlog:
+                        lastlog_created_date = lastlog.timestamp.strftime('%d-%m-%YT%H:%M:%SZ')
+                        lastlog_graphid = lastlog.resourceclassid
+                    else:
+                        lastlog_created_date = None
+                        lastlog_graphid = None
+
+                    data.append({'modified':edit.timestamp.strftime('%d-%m-%YT%H:%M:%SZ'),
+                        'created':lastlog_created_date,
+                        'edittype':edit.edittype,
+                        'resourceinstance_id':resourceid,
+                        'graph_id':lastlog_graphid,
+                        'tiles':None})
 
             return (data,)
 
